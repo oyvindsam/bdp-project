@@ -1,6 +1,7 @@
 package au.edu.rmit.bdp.clustering.mapreduce;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 
 import au.edu.rmit.bdp.clustering.model.Centroid;
 import org.apache.hadoop.conf.Configuration;
@@ -18,6 +19,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import au.edu.rmit.bdp.clustering.model.DataPoint;
+
+import static au.edu.rmit.bdp.util.Etl.extractData;
 
 /**
  * K-means algorithm in mapReduce<p>
@@ -53,6 +56,10 @@ public class KMeansClusteringJob {
 	@SuppressWarnings("deprecation")
 	public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException {
 
+		// First argument is path to raw input data (csv file)
+	    java.nio.file.Path inputData = Paths.get(args[0]);
+	    // second argument number of reducers
+
 		int iteration = 1;
 		Configuration conf = new Configuration();
 		conf.set("num.iteration", iteration + "");
@@ -83,8 +90,9 @@ public class KMeansClusteringJob {
 			fs.delete(pointDataPath, true);
 		}
 
+		// TODO: be a bit smarter when generating initial centroids, eg. somewhere between max and min data point
 		generateCentroid(conf, centroidDataPath, fs);
-		generateDataPoints(conf, pointDataPath, fs);
+		extractData(inputData, conf, pointDataPath, fs);
 
 		job.setNumReduceTasks(1);
 		FileOutputFormat.setOutputPath(job, outputDir);
@@ -169,8 +177,8 @@ public class KMeansClusteringJob {
 		try (SequenceFile.Writer centerWriter = SequenceFile.createWriter(fs, conf, center, Centroid.class,
 				IntWritable.class)) {
 			final IntWritable value = new IntWritable(0);
-			centerWriter.append(new Centroid(new DataPoint(1, 1)), value);
-			centerWriter.append(new Centroid(new DataPoint(5, 5)), value);
+			centerWriter.append(new Centroid(new DataPoint(-73.95440626635994, 40.741801586347755)), value);
+			centerWriter.append(new Centroid(new DataPoint(-74.00675964355469, 40.71890640258789)), value);
 		}
 	}
 
