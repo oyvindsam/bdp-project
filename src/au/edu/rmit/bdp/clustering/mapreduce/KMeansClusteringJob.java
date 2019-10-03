@@ -57,7 +57,7 @@ public class KMeansClusteringJob {
 		Configuration conf = new Configuration();
 		conf.set("num.iteration", iteration + "");
 		
-		Path PointDataPath = new Path("clustering/data.seq");
+		Path pointDataPath = new Path("clustering/data.seq");
 		Path centroidDataPath = new Path("clustering/centroid.seq");
 		conf.set("centroid.path", centroidDataPath.toString());
 		Path outputDir = new Path("clustering/depth_1");
@@ -69,7 +69,7 @@ public class KMeansClusteringJob {
 		job.setReducerClass(KMeansReducer.class);
 		job.setJarByClass(KMeansMapper.class);
 
-		FileInputFormat.addInputPath(job, PointDataPath);
+		FileInputFormat.addInputPath(job, pointDataPath);
 		FileSystem fs = FileSystem.get(conf);
 		if (fs.exists(outputDir)) {
 			fs.delete(outputDir, true);
@@ -79,12 +79,12 @@ public class KMeansClusteringJob {
 			fs.delete(centroidDataPath, true);
 		}
 
-		if (fs.exists(PointDataPath)) {
-			fs.delete(PointDataPath, true);
+		if (fs.exists(pointDataPath)) {
+			fs.delete(pointDataPath, true);
 		}
 
 		generateCentroid(conf, centroidDataPath, fs);
-		generateDataPoints(conf, PointDataPath, fs);
+		generateDataPoints(conf, pointDataPath, fs);
 
 		job.setNumReduceTasks(1);
 		FileOutputFormat.setOutputPath(job, outputDir);
@@ -109,10 +109,10 @@ public class KMeansClusteringJob {
 			job.setReducerClass(KMeansReducer.class);
 			job.setJarByClass(KMeansMapper.class);
 
-			PointDataPath = new Path("clustering/depth_" + (iteration - 1) + "/");
+			pointDataPath = new Path("clustering/depth_" + (iteration - 1) + "/");
 			outputDir = new Path("clustering/depth_" + iteration);
 
-			FileInputFormat.addInputPath(job, PointDataPath);
+			FileInputFormat.addInputPath(job, pointDataPath);
 			if (fs.exists(outputDir))
 				fs.delete(outputDir, true);
 
