@@ -6,7 +6,7 @@
 	<groupId>au.edu.rmit.bdp</groupId>
 	<artifactId>mapreduce-kmeans</artifactId>
 	<name>mapreduce-kmeans</name>
-	<version>1.0</version>
+	<version>1.2</version>
 	<packaging>jar</packaging>
 	<prerequisites>
 		<maven>3.0</maven>

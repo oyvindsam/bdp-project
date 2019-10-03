@@ -7,16 +7,14 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.SequenceFile;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.InputStreamReader;
 import java.util.stream.Stream;
 
 public class Etl {
 
     public static void main(String[] args) throws IOException {
-        java.nio.file.Path path = Paths.get(args[0]);
-        System.out.println(path);
     }
 
     // VendorID,tpep_pickup_datetime,tpep_dropoff_datetime,passenger_count,trip_distance,pickup_longitude,pickup_latitude,RatecodeID,store_and_fwd_flag,dropoff_longitude,dropoff_latitude,payment_type,fare_amount,extra,mta_tax,tip_amount,tolls_amount,improvement_surcharge,total_amount
@@ -24,11 +22,12 @@ public class Etl {
     // @inputFile raw data from CSV, to be cleaned before mapreduce
     // @mapReduceInput output dest for raw data, will be input data for mapreduce
     @SuppressWarnings("deprecation")
-    public static void extractData(java.nio.file.Path inputFile, Configuration conf, Path mapReduceInput, FileSystem fs) throws IOException {
+    public static void extractData(Path inputFile, Configuration conf, Path mapReduceInput, FileSystem fs) throws IOException {
         try (SequenceFile.Writer dataWriter = SequenceFile.createWriter(fs, conf, mapReduceInput, Centroid.class,
                 DataPoint.class)) {
             final Centroid defaultCentroid = new Centroid(new DataPoint(0, 0));
-            try (Stream<String> stream = Files.lines(inputFile)) {
+
+            try (Stream<String> stream = new BufferedReader(new InputStreamReader(fs.open(inputFile).getWrappedStream())).lines()) {
                 stream.skip(1) // skip fist line
                         .map(s -> {
                             String[] arr = s.split(",");
