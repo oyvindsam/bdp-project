@@ -37,6 +37,7 @@ public class Etl {
                         })
                         .filter(dp -> dp.getVector().sum() != 0)  // bad point
                         .forEach(dp -> write(defaultCentroid, dp, dataWriter));
+
             };
         } catch (IOException e) {
             e.printStackTrace();
@@ -51,5 +52,30 @@ public class Etl {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static double[] findExtremes(Path inputFile, Configuration conf, Path mapReduceInput, FileSystem fs) throws IOException {
+
+        double maxLat = -Double.MAX_VALUE;
+        double minLat = Double.MAX_VALUE;
+        double maxLong = -Double.MAX_VALUE;
+        double minLong = Double.MAX_VALUE;
+
+        String line;
+        BufferedReader stream = new BufferedReader(new InputStreamReader(fs.open(inputFile)));
+        stream.readLine(); // skip first line
+        while((line = stream.readLine()) != null) {
+            String[] arr = line.split(",");
+            double longitude = Double.parseDouble(arr[5]);
+            double latitude = Double.parseDouble(arr[6]);
+            if (longitude == 0 || latitude == 0) continue;
+            if (maxLat < latitude) maxLat = latitude;
+            if (minLat > latitude) minLat = latitude;
+            if (maxLong < longitude) maxLong = longitude;
+            if (minLong > longitude) minLong = longitude;
+        }
+        System.out.println("Extremes found:\nLatitude: " + maxLat + ", " + minLat + "\nLongitude: " +
+                maxLong + ", " + minLong);
+        return new double[] {maxLat, minLat, maxLong, minLong};
     }
 }
