@@ -52,10 +52,12 @@ public class KMeansReducer extends Reducer<Centroid, DataPoint, Centroid, DataPo
 		}
 		newCenter = newCenter.divide(vectorList.size());
 		Centroid newCentroid = new Centroid(newCenter);
+
 		centers.add(newCentroid);
 
 		// write new key-value pairs to disk, which will be fed into next round mapReduce job.
 		for (DataPoint vector : vectorList) {
+			//System.out.println("-------Key-value [newCentroid, vector]: " + newCentroid.getCenterVector() + " - " + vector.getVector());
 			context.write(newCentroid, vector);
 		}
 

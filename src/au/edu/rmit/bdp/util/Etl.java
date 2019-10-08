@@ -33,7 +33,7 @@ public class Etl {
                             String[] arr = s.split(",");
                             double longitude = Double.parseDouble(arr[5]);
                             double latitude = Double.parseDouble(arr[6]);
-                            return new DataPoint(longitude, latitude);
+                            return new DataPoint(latitude, longitude);
                         })
                         .filter(dp -> dp.getVector().sum() != 0)  // bad point
                         .forEach(dp -> write(defaultCentroid, dp, dataWriter));

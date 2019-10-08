@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import au.edu.rmit.bdp.distance.CosineDistance;
 import au.edu.rmit.bdp.distance.DistanceMeasurer;
 import au.edu.rmit.bdp.distance.EuclidianDistance;
 import au.edu.rmit.bdp.clustering.model.Centroid;
@@ -47,7 +48,6 @@ public class KMeansMapper extends Mapper<Centroid, DataPoint, Centroid, DataPoin
 	@Override
 	protected void setup(Context context) throws IOException, InterruptedException {
 		super.setup(context);
-
 		// We get the URI to the centroid file on hadoop file system (not local fs!).
 		// The url is set beforehand in KMeansClusteringJob#main.
 		Configuration conf = context.getConfiguration();
@@ -67,9 +67,8 @@ public class KMeansMapper extends Mapper<Centroid, DataPoint, Centroid, DataPoin
 				centers.add(centroid);
 			}
 		}
-
 		// This is for calculating the distance between a point and another (centroid is essentially a point).
-		distanceMeasurer = new EuclidianDistance();
+		distanceMeasurer = new CosineDistance();
 	}
 
 	/**
@@ -91,10 +90,11 @@ public class KMeansMapper extends Mapper<Centroid, DataPoint, Centroid, DataPoin
 			//todo: find the nearest centroid for the current dataPoint, pass the pair to reducer
 			if (nearestDistance > distanceMeasurer.measureDistance(dataVector, c.getCenterVector())) {
 				nearest = c;
+				//System.out.println("---- Nearest centroid vector: " + c.getCenterVector() + " for dataPoint: " + dataPoint.getVector());
 				nearestDistance = distanceMeasurer.measureDistance(dataVector, c.getCenterVector());
 			}
 		}
-
+		//System.out.println("Nearest: " + nearest.getCenterVector() + " for dp: " + dataPoint.getVector());
 		context.write(nearest, dataPoint);
 	}
 

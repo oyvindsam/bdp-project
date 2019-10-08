@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static au.edu.rmit.bdp.util.Etl.extractData;
+import static au.edu.rmit.bdp.util.Etl.findExtremes;
 
 /**
  * K-means algorithm in mapReduce<p>
@@ -59,23 +60,25 @@ public class KMeansClusteringJob {
         Path inputData = new Path(args[0]);
         // second argument number of reducers
         int numReducers = args.length >= 2 ? Integer.parseInt(args[1]) : 1;
-        // third - eight argument are arguments for initial centroids: # centroids, min lat, min long, max lat, min long
-        int numCentroids = 4;
+        // # of centroids. Default 2.
+        int numCentroids = args.length >= 3 ? Integer.parseInt(args[2]) : 2;
+        // number of iterations (when not converging). Default 1
+        int iteration = args.length >= 4 ? Integer.parseInt(args[3]) : 1;
 
         // default values, take a data sample and find max/min with Etl.findExtremes()
-        double maxLat = 40.786888122558594;
-        double minLat = 40.644405364990234;
+        double maxLat = 40.86269760131836;
+        double minLat = 40.64155960083008;
         double maxLong = -73.76023864746094;
-        double minLong = -74.0135498046875;
+        double minLong = -74.01734924316406;
 
-        if (args.length == 7) {
-            maxLat = Double.parseDouble(args[3]);
-            minLat = Double.parseDouble(args[4]);
-            maxLong = Double.parseDouble(args[5]);
-            minLong = Double.parseDouble(args[6]);
+        // fifth - ninth argument are arguments for initial centroids max-min values: min lat, min long, max lat, min long
+        if (args.length == 8) {
+            maxLat = Double.parseDouble(args[4]);
+            minLat = Double.parseDouble(args[5]);
+            maxLong = Double.parseDouble(args[6]);
+            minLong = Double.parseDouble(args[7]);
         }
 
-        int iteration = 1;
         Configuration conf = new Configuration();
         conf.set("num.iteration", iteration + "");
 
@@ -107,6 +110,7 @@ public class KMeansClusteringJob {
 
         generateCentroid(conf, centroidDataPath, fs, numCentroids, maxLat, minLat, maxLong, minLong);
         extractData(inputData, conf, pointDataPath, fs);
+        //findExtremes(inputData, conf, pointDataPath, fs);
 
         job.setNumReduceTasks(numReducers);
         FileOutputFormat.setOutputPath(job, outputDir);
@@ -143,7 +147,7 @@ public class KMeansClusteringJob {
             job.setOutputFormatClass(SequenceFileOutputFormat.class);
             job.setOutputKeyClass(Centroid.class);
             job.setOutputValueClass(DataPoint.class);
-            job.setNumReduceTasks(1);
+            job.setNumReduceTasks(numReducers);
 
             job.waitForCompletion(true);
             iteration++;
@@ -175,12 +179,13 @@ public class KMeansClusteringJob {
                                         double maxLat, double minLat, double maxLong, double minLong) throws IOException {
         try (SequenceFile.Writer centerWriter = SequenceFile.createWriter(fs, conf, center, Centroid.class,
                 IntWritable.class)) {
-            final IntWritable value = new IntWritable(0);
             for (int i = 0; i < numCentroids; i++) {
+                final IntWritable value = new IntWritable(0);
+
                 double lat = ThreadLocalRandom.current().nextDouble(minLat, maxLat);
                 double lon = ThreadLocalRandom.current().nextDouble(minLong, maxLong);
                 centerWriter.append(new Centroid(new DataPoint(lat, lon)), value);
-                //System.out.println("Random centroid: " + lat + ", " + lon);
+                System.out.println("Random centroid: " + lat + ", " + lon);
             }
         }
     }
