@@ -56,6 +56,7 @@ public class KMeansClusteringJob {
     @SuppressWarnings("deprecation")
     public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException {
 
+        long startTime = System.currentTimeMillis();
         // First argument is path to raw input data (csv file)
         Path inputData = new Path(args[0]);
         // second argument number of reducers
@@ -172,6 +173,9 @@ public class KMeansClusteringJob {
                 }
             }
         }
+
+        long endTime = System.currentTimeMillis();
+        System.out.println("Total time: " + (endTime - startTime));
     }
 
     @SuppressWarnings("deprecation")
