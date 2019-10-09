@@ -2,3 +2,4 @@
 /target/
 /mapreduce-kmeans.iml
 /dependency-reduced-pom.xml
+/clustering/

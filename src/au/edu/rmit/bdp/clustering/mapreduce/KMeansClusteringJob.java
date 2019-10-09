@@ -97,6 +97,7 @@ public class KMeansClusteringJob {
 
         job.setMapperClass(KMeansMapper.class);
         job.setReducerClass(KMeansReducer.class);
+        job.setPartitionerClass(KMeansPartitioner.class);
         job.setJarByClass(KMeansMapper.class);
 
         FileInputFormat.addInputPath(job, pointDataPath);
