@@ -8,6 +8,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.ArrayWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.mapreduce.Job;
@@ -95,6 +96,8 @@ public class KMeansClusteringJob {
         job.setMapperClass(KMeansMapper.class);
         job.setReducerClass(KMeansReducer.class);
         job.setJarByClass(KMeansMapper.class);
+
+        job.setMapOutputValueClass(ArrayWritable.class);
 
         FileInputFormat.addInputPath(job, pointDataPath);
         FileSystem fs = FileSystem.get(conf);

@@ -2,16 +2,19 @@ package au.edu.rmit.bdp.clustering.mapreduce;
 
 import au.edu.rmit.bdp.clustering.model.Centroid;
 import au.edu.rmit.bdp.clustering.model.DataPoint;
+import au.edu.rmit.bdp.clustering.model.DpArrayWritable;
 import au.edu.rmit.bdp.distance.CosineDistance;
 import au.edu.rmit.bdp.distance.DistanceMeasurer;
 import de.jungblut.math.DoubleVector;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.ArrayWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.mapreduce.Mapper;
 
+import javax.xml.crypto.Data;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,7 +31,7 @@ import java.util.Map;
  * The difference is that the association between a centroid and a data-point may change.
  * This is because the centroids has been recomputed in previous reduce().
  */
-public class KMeansMapper extends Mapper<Centroid, DataPoint, Centroid, DataPoint> {
+public class KMeansMapper extends Mapper<Centroid, DataPoint, Centroid, DpArrayWritable> {
 
 	//private final List<Centroid> centers = new ArrayList<>();
 	private DistanceMeasurer distanceMeasurer;
@@ -82,12 +85,13 @@ public class KMeansMapper extends Mapper<Centroid, DataPoint, Centroid, DataPoin
 	 * and pass the pair to reducer.
 	 *
 	 * @param centroid key
-	 * @param dataPoint value
+	 * @param dataPoints value
 	 */
 	@Override
 	protected void map(Centroid centroid, DataPoint dataPoint, Context context) throws IOException,
 			InterruptedException {
-		System.out.println("centroid id : " + centroid.getClusterIndex() + " centroid: " + centroid.getCenterVector() + " dp: " + dataPoint.getVector());
+		//System.out.println("centroid id : " + centroid.getClusterIndex() + " centroid: " + centroid.getCenterVector() + " dp: " + dataPoint.getVector());
+
 		Centroid nearest = null;
 		double nearestDistance = Double.MAX_VALUE;
 		DoubleVector dataVector = dataPoint.getVector();
@@ -105,6 +109,8 @@ public class KMeansMapper extends Mapper<Centroid, DataPoint, Centroid, DataPoin
 		//System.out.println("centroid id : " + nearest.getClusterIndex());
 		List<DataPoint> lst = map.get(nearest);
 		lst.add(new DataPoint(dataPoint));  // kinda important not to add the reference to the same dataPoint... queue 2 hours debugging.
+
+
 	}
 
 	@Override
@@ -113,9 +119,16 @@ public class KMeansMapper extends Mapper<Centroid, DataPoint, Centroid, DataPoin
 		for (Map.Entry<Centroid, List<DataPoint>> entry : map.entrySet()) {
 			Centroid centroid = entry.getKey();
 			List<DataPoint> dataPoints = entry.getValue();
-			for (DataPoint dataPoint : dataPoints) {
-				context.write(centroid, dataPoint);
+			DpArrayWritable arrayWritable = new DpArrayWritable(DataPoint.class);
+			DataPoint[] points = new DataPoint[dataPoints.size()];
+			for (int i = 0; i < dataPoints.size(); i++) {
+				points[i] = dataPoints.get(i);
 			}
+			arrayWritable.set(points);
+			context.write(centroid, arrayWritable);
+			/*for (DataPoint dataPoint : dataPoints) {
+				context.write(centroid, dataPoint);
+			}*/
 		}
 	}
 }
