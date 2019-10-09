@@ -51,6 +51,7 @@ public class KMeansMapper extends Mapper<Centroid, DataPoint, Centroid, DataPoin
 	@Override
 	protected void setup(Context context) throws IOException, InterruptedException {
 		super.setup(context);
+		System.out.println("\n---------- Setup called");
 		// We get the URI to the centroid file on hadoop file system (not local fs!).
 		// The url is set beforehand in KMeansClusteringJob#main.
 		Configuration conf = context.getConfiguration();
@@ -65,6 +66,7 @@ public class KMeansMapper extends Mapper<Centroid, DataPoint, Centroid, DataPoin
 			IntWritable value = new IntWritable();
 			int index = 0;
 			while (reader.next(key, value)) {
+				System.out.println("key: " + key + ", value: " + value);
 				Centroid centroid = new Centroid(key);
 				centroid.setClusterIndex(index++);
 				map.put(centroid, new ArrayList<>());
@@ -85,7 +87,7 @@ public class KMeansMapper extends Mapper<Centroid, DataPoint, Centroid, DataPoin
 	@Override
 	protected void map(Centroid centroid, DataPoint dataPoint, Context context) throws IOException,
 			InterruptedException {
-
+		System.out.println("centroid id : " + centroid.getClusterIndex() + " centroid: " + centroid.getCenterVector() + " dp: " + dataPoint.getVector());
 		Centroid nearest = null;
 		double nearestDistance = Double.MAX_VALUE;
 		DoubleVector dataVector = dataPoint.getVector();
@@ -100,7 +102,9 @@ public class KMeansMapper extends Mapper<Centroid, DataPoint, Centroid, DataPoin
 				nearestDistance = distanceMeasurer.measureDistance(dataVector, c.getCenterVector());
 			}
 		}
-		map.get(nearest).add(new DataPoint(dataPoint));  // kinda important not to add the reference to the same dataPoint... queue 2 hours debugging.
+		//System.out.println("centroid id : " + nearest.getClusterIndex());
+		List<DataPoint> lst = map.get(nearest);
+		lst.add(new DataPoint(dataPoint));  // kinda important not to add the reference to the same dataPoint... queue 2 hours debugging.
 	}
 
 	@Override

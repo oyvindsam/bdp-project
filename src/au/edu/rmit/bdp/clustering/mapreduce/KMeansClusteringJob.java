@@ -185,13 +185,11 @@ public class KMeansClusteringJob {
                                         double maxLat, double minLat, double maxLong, double minLong) throws IOException {
         try (SequenceFile.Writer centerWriter = SequenceFile.createWriter(fs, conf, center, Centroid.class,
                 IntWritable.class)) {
-            final IntWritable value = new IntWritable(0);
 
             for (int i = 0; i < numCentroids; i++) {
-
                 double lat = ThreadLocalRandom.current().nextDouble(minLat, maxLat);
                 double lon = ThreadLocalRandom.current().nextDouble(minLong, maxLong);
-                centerWriter.append(new Centroid(new DataPoint(lat, lon)), value);
+                centerWriter.append(new Centroid(new DataPoint(lat, lon)), new IntWritable(i));
                 System.out.println("Random centroid: " + lat + ", " + lon);
             }
         }
