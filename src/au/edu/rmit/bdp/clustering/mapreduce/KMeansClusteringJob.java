@@ -56,6 +56,8 @@ public class KMeansClusteringJob {
     @SuppressWarnings("deprecation")
     public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException {
 
+        long startTime = System.currentTimeMillis();
+
         // First argument is path to raw input data (csv file)
         Path inputData = new Path(args[0]);
         // second argument number of reducers
@@ -172,15 +174,20 @@ public class KMeansClusteringJob {
                 }
             }
         }
+
+        long endTime = System.currentTimeMillis();
+        System.out.println("Total time: " + (endTime - startTime));
     }
 
+    // TODO: generateCentroid with hardcoded data so easier to reproduce results
     @SuppressWarnings("deprecation")
     public static void generateCentroid(Configuration conf, Path center, FileSystem fs, int numCentroids,
                                         double maxLat, double minLat, double maxLong, double minLong) throws IOException {
         try (SequenceFile.Writer centerWriter = SequenceFile.createWriter(fs, conf, center, Centroid.class,
                 IntWritable.class)) {
+            final IntWritable value = new IntWritable(0);
+
             for (int i = 0; i < numCentroids; i++) {
-                final IntWritable value = new IntWritable(0);
 
                 double lat = ThreadLocalRandom.current().nextDouble(minLat, maxLat);
                 double lon = ThreadLocalRandom.current().nextDouble(minLong, maxLong);

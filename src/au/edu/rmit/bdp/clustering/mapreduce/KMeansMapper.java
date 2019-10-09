@@ -1,13 +1,9 @@
 package au.edu.rmit.bdp.clustering.mapreduce;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
+import au.edu.rmit.bdp.clustering.model.Centroid;
+import au.edu.rmit.bdp.clustering.model.DataPoint;
 import au.edu.rmit.bdp.distance.CosineDistance;
 import au.edu.rmit.bdp.distance.DistanceMeasurer;
-import au.edu.rmit.bdp.distance.EuclidianDistance;
-import au.edu.rmit.bdp.clustering.model.Centroid;
 import de.jungblut.math.DoubleVector;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -16,7 +12,11 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.mapreduce.Mapper;
 
-import au.edu.rmit.bdp.clustering.model.DataPoint;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * First generic specifies the type of input Key.
@@ -30,8 +30,11 @@ import au.edu.rmit.bdp.clustering.model.DataPoint;
  */
 public class KMeansMapper extends Mapper<Centroid, DataPoint, Centroid, DataPoint> {
 
-	private final List<Centroid> centers = new ArrayList<>();
+	//private final List<Centroid> centers = new ArrayList<>();
 	private DistanceMeasurer distanceMeasurer;
+
+	// Used for in map combining. Based on cluseter index -> data points
+	private final Map<Centroid, List<DataPoint>> map = new HashMap<>();
 
 	/**
 	 *
@@ -44,7 +47,7 @@ public class KMeansMapper extends Mapper<Centroid, DataPoint, Centroid, DataPoin
 	 *                One can put something into the bundle in KMeansClusteringJob.class and retrieve it from there.
 	 *
 	 */
-    @SuppressWarnings("deprecation")
+	@SuppressWarnings("deprecation")
 	@Override
 	protected void setup(Context context) throws IOException, InterruptedException {
 		super.setup(context);
@@ -64,7 +67,7 @@ public class KMeansMapper extends Mapper<Centroid, DataPoint, Centroid, DataPoin
 			while (reader.next(key, value)) {
 				Centroid centroid = new Centroid(key);
 				centroid.setClusterIndex(index++);
-				centers.add(centroid);
+				map.put(centroid, new ArrayList<>());
 			}
 		}
 		// This is for calculating the distance between a point and another (centroid is essentially a point).
@@ -86,16 +89,29 @@ public class KMeansMapper extends Mapper<Centroid, DataPoint, Centroid, DataPoin
 		Centroid nearest = null;
 		double nearestDistance = Double.MAX_VALUE;
 		DoubleVector dataVector = dataPoint.getVector();
-		for (Centroid c : centers) {
+		for (Centroid c : map.keySet()) {
+			//System.out.println("\nChecking centroid:        " + c.getCenterVector() + ", distance: " + distanceMeasurer.measureDistance(dataVector, c.getCenterVector()));
 			//todo: find the nearest centroid for the current dataPoint, pass the pair to reducer
 			if (nearestDistance > distanceMeasurer.measureDistance(dataVector, c.getCenterVector())) {
 				nearest = c;
+				//System.out.println("Found new nearest centroid: " + c.getCenterVector());
+
 				//System.out.println("---- Nearest centroid vector: " + c.getCenterVector() + " for dataPoint: " + dataPoint.getVector());
 				nearestDistance = distanceMeasurer.measureDistance(dataVector, c.getCenterVector());
 			}
 		}
-		//System.out.println("Nearest: " + nearest.getCenterVector() + " for dp: " + dataPoint.getVector());
-		context.write(nearest, dataPoint);
+		map.get(nearest).add(new DataPoint(dataPoint));  // kinda important not to add the reference to the same dataPoint... queue 2 hours debugging.
 	}
 
+	@Override
+	protected void cleanup(Context context) throws IOException, InterruptedException {
+		super.cleanup(context);
+		for (Map.Entry<Centroid, List<DataPoint>> entry : map.entrySet()) {
+			Centroid centroid = entry.getKey();
+			List<DataPoint> dataPoints = entry.getValue();
+			for (DataPoint dataPoint : dataPoints) {
+				context.write(centroid, dataPoint);
+			}
+		}
+	}
 }
