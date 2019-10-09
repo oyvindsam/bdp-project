@@ -134,6 +134,7 @@ public class KMeansClusteringJob {
 
             job.setMapperClass(KMeansMapper.class);
             job.setReducerClass(KMeansReducer.class);
+            job.setCombinerClass(KMeansReducer.class);
             job.setJarByClass(KMeansMapper.class);
 
             pointDataPath = new Path("clustering/depth_" + (iteration - 1) + "/");
