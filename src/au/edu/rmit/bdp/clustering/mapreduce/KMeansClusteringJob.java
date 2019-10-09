@@ -63,8 +63,6 @@ public class KMeansClusteringJob {
         int numReducers = args.length >= 2 ? Integer.parseInt(args[1]) : 1;
         // # of centroids. Default 2.
         int numCentroids = args.length >= 3 ? Integer.parseInt(args[2]) : 2;
-        // number of iterations (when not converging). Default 1
-        int iteration = args.length >= 4 ? Integer.parseInt(args[3]) : 1;
 
         // default values, take a data sample and find max/min with Etl.findExtremes()
         double maxLat = 40.86269760131836;
@@ -73,12 +71,14 @@ public class KMeansClusteringJob {
         double minLong = -74.01734924316406;
 
         // fifth - ninth argument are arguments for initial centroids max-min values: min lat, min long, max lat, min long
-        if (args.length == 8) {
-            maxLat = Double.parseDouble(args[4]);
-            minLat = Double.parseDouble(args[5]);
-            maxLong = Double.parseDouble(args[6]);
-            minLong = Double.parseDouble(args[7]);
+        if (args.length == 7) {
+            maxLat = Double.parseDouble(args[3]);
+            minLat = Double.parseDouble(args[4]);
+            maxLong = Double.parseDouble(args[5]);
+            minLong = Double.parseDouble(args[6]);
         }
+
+        int iteration = 1;
 
         Configuration conf = new Configuration();
         conf.set("num.iteration", iteration + "");
