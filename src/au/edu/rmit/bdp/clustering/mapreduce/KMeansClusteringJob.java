@@ -17,6 +17,8 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static au.edu.rmit.bdp.util.Etl.extractData;
@@ -64,6 +66,8 @@ public class KMeansClusteringJob {
         // # of centroids. Default 2.
         int numCentroids = args.length >= 3 ? Integer.parseInt(args[2]) : 2;
 
+        boolean defaultCentroids = "d".equals(args[3]);
+
         // default values, take a data sample and find max/min with Etl.findExtremes()
         double maxLat = 40.86269760131836;
         double minLat = 40.64155960083008;
@@ -72,10 +76,10 @@ public class KMeansClusteringJob {
 
         // fifth - ninth argument are arguments for initial centroids max-min values: min lat, min long, max lat, min long
         if (args.length == 7) {
-            maxLat = Double.parseDouble(args[3]);
-            minLat = Double.parseDouble(args[4]);
-            maxLong = Double.parseDouble(args[5]);
-            minLong = Double.parseDouble(args[6]);
+            maxLat = Double.parseDouble(args[4]);
+            minLat = Double.parseDouble(args[5]);
+            maxLong = Double.parseDouble(args[6]);
+            minLong = Double.parseDouble(args[7]);
         }
 
         int iteration = 1;
@@ -109,7 +113,12 @@ public class KMeansClusteringJob {
             fs.delete(pointDataPath, true);
         }
 
-        generateCentroid(conf, centroidDataPath, fs, numCentroids, maxLat, minLat, maxLong, minLong);
+        // use default centroids so easier to make statistics
+        if (defaultCentroids) {
+            generateDefaultCentroid(conf, centroidDataPath, fs, numCentroids);
+        } else {
+            generateCentroid(conf, centroidDataPath, fs, numCentroids, maxLat, minLat, maxLong, minLong);
+        }
         extractData(inputData, conf, pointDataPath, fs);
         //findExtremes(inputData, conf, pointDataPath, fs);
 
@@ -190,6 +199,70 @@ public class KMeansClusteringJob {
                 double lon = ThreadLocalRandom.current().nextDouble(minLong, maxLong);
                 centerWriter.append(new Centroid(new DataPoint(lat, lon)), value);
                 System.out.println("Random centroid: " + lat + ", " + lon);
+            }
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    public static void generateDefaultCentroid(Configuration conf, Path center, FileSystem fs, int numCentroids) throws IOException {
+        List<Centroid> centers = new ArrayList<>();
+        centers.add(new Centroid(new DataPoint(40.85735017051131, -73.97583520817525)));
+        centers.add(new Centroid(new DataPoint(40.68861655424816, -73.96573858495647)));
+        centers.add(new Centroid(new DataPoint(40.80788839326028, -73.85133394272049)));
+        centers.add(new Centroid(new DataPoint(40.73431922011856, -73.97139306295887)));
+        centers.add(new Centroid(new DataPoint(40.83950177827124, -73.93830123848582)));
+        centers.add(new Centroid(new DataPoint(40.66835303047305, -73.95603291052532)));
+        centers.add(new Centroid(new DataPoint(40.70593518625388, -73.8174453420053)));
+        centers.add(new Centroid(new DataPoint(40.69313611161207, -74.00557179477212)));
+        centers.add(new Centroid(new DataPoint(40.733512456740705, -74.00015919755681)));
+        centers.add(new Centroid(new DataPoint(40.64981051798551, -73.825900619623)));
+        centers.add(new Centroid(new DataPoint(40.66875092115764, -73.78788263127616)));
+        centers.add(new Centroid(new DataPoint(40.71333159456563, -73.843830939004)));
+        centers.add(new Centroid(new DataPoint(40.7987311948879, -73.92969174515021)));
+        centers.add(new Centroid(new DataPoint(40.79733248094382, -73.82423064039747)));
+        centers.add(new Centroid(new DataPoint(40.83338254534093, -73.86255561092706)));
+        centers.add(new Centroid(new DataPoint(40.765830481760105, -74.0045637756593)));
+        centers.add(new Centroid(new DataPoint(40.66128235833121, -73.84216487335976)));
+        centers.add(new Centroid(new DataPoint(40.67297350126494, -73.98181949460644)));
+        centers.add(new Centroid(new DataPoint(40.74351955977953, -73.86371431396884)));
+        centers.add(new Centroid(new DataPoint(40.72774944929018, -73.97733413739687)));
+        centers.add(new Centroid(new DataPoint(40.78587919811453, -73.87216742399652)));
+        centers.add(new Centroid(new DataPoint(40.70825361486318, -73.77281441638279)));
+        centers.add(new Centroid(new DataPoint(40.69285940887492, -73.9294412351402)));
+        centers.add(new Centroid(new DataPoint(40.71586668557954, -73.77946234926674)));
+        centers.add(new Centroid(new DataPoint(40.8215990386083, -73.98279179801291)));
+        centers.add(new Centroid(new DataPoint(40.79100734092063, -73.92828585102298)));
+        centers.add(new Centroid(new DataPoint(40.855373312023914, -73.9372727833193)));
+        centers.add(new Centroid(new DataPoint(40.695195104071416, -73.9785846269713)));
+        centers.add(new Centroid(new DataPoint(40.72508133054938, -73.91170452722731)));
+        centers.add(new Centroid(new DataPoint(40.74869699796766, -73.77021806769295)));
+        centers.add(new Centroid(new DataPoint(40.80916041668119, -74.0074764797616)));
+        centers.add(new Centroid(new DataPoint(40.647687570357505, -73.77733715364666)));
+        centers.add(new Centroid(new DataPoint(40.77375147934253, -73.95588337370204)));
+        centers.add(new Centroid(new DataPoint(40.82071280668222, -73.83082074358332)));
+        centers.add(new Centroid(new DataPoint(40.8275987107237, -73.99338057070744)));
+        centers.add(new Centroid(new DataPoint(40.85028127560577, -73.85560762056159)));
+        centers.add(new Centroid(new DataPoint(40.840376487812364, -73.942041545382)));
+        centers.add(new Centroid(new DataPoint(40.66977457237654, -73.81022432674847)));
+        centers.add(new Centroid(new DataPoint(40.68290006294763, -73.95729128680429)));
+        centers.add(new Centroid(new DataPoint(40.78019888633854, -73.83765755028243)));
+        centers.add(new Centroid(new DataPoint(40.77841614817231, -73.96705466440804)));
+        centers.add(new Centroid(new DataPoint(40.74229328611358, -73.89733032555753)));
+        centers.add(new Centroid(new DataPoint(40.67128568660068, -73.90455915663779)));
+        centers.add(new Centroid(new DataPoint(40.83130153939308, -73.85342255369862)));
+        centers.add(new Centroid(new DataPoint(40.86058153196138, -73.77836573670304)));
+        centers.add(new Centroid(new DataPoint(40.71732812292367, -73.81829914115383)));
+        centers.add(new Centroid(new DataPoint(40.797558074239916, -73.90669273782882)));
+        centers.add(new Centroid(new DataPoint(40.85863609269721, -73.86320126465303)));
+        centers.add(new Centroid(new DataPoint(40.85778977479922, -73.76044105675624)));
+        centers.add(new Centroid(new DataPoint(40.675789742452466, -73.77029478324643)));
+
+        try (SequenceFile.Writer centerWriter = SequenceFile.createWriter(fs, conf, center, Centroid.class,
+                IntWritable.class)) {
+            for (int i = 0; i < numCentroids; i++) {
+                final IntWritable value = new IntWritable(i);
+
+                centerWriter.append(centers.get(i), value);
             }
         }
     }
