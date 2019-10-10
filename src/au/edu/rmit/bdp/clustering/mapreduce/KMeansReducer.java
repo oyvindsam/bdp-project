@@ -18,7 +18,7 @@ import de.jungblut.math.DoubleVector;
 /**
  * calculate a new centroid for these vertices
  */
-public class KMeansReducer extends Reducer<Centroid, DataPoint, Centroid, DataPoint> {
+public class KMeansReducer extends Reducer<IntWritable, Centroid, Centroid, DataPoint> {
 
 	/**
 	 * A flag indicates if the clustering converges.

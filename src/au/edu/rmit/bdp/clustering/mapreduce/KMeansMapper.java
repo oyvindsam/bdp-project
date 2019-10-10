@@ -28,7 +28,7 @@ import au.edu.rmit.bdp.clustering.model.DataPoint;
  * The difference is that the association between a centroid and a data-point may change.
  * This is because the centroids has been recomputed in previous reduce().
  */
-public class KMeansMapper extends Mapper<Centroid, DataPoint, Centroid, DataPoint> {
+public class KMeansMapper extends Mapper<Centroid, DataPoint, IntWritable, Centroid> {
 
 	private final List<Centroid> centers = new ArrayList<>();
 	private DistanceMeasurer distanceMeasurer;
@@ -83,7 +83,7 @@ public class KMeansMapper extends Mapper<Centroid, DataPoint, Centroid, DataPoin
 	protected void map(Centroid centroid, DataPoint dataPoint, Context context) throws IOException,
 			InterruptedException {
 
-		Centroid nearest = null;
+		Centroid nearest = centers.get(0);
 		double nearestDistance = Double.MAX_VALUE;
 		DoubleVector dataVector = dataPoint.getVector();
 		for (Centroid c : centers) {
@@ -95,7 +95,7 @@ public class KMeansMapper extends Mapper<Centroid, DataPoint, Centroid, DataPoin
 			}
 		}
 		//System.out.println("Nearest: " + nearest.getCenterVector() + " for dp: " + dataPoint.getVector());
-		context.write(nearest, dataPoint);
+		context.write(new IntWritable(nearest.getClusterIndex()), new Centroid(dataPoint));
 	}
 
 }

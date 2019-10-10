@@ -75,7 +75,7 @@ public class KMeansClusteringJob {
         double minLong = -74.01734924316406;
 
         // fifth - ninth argument are arguments for initial centroids max-min values: min lat, min long, max lat, min long
-        if (args.length == 7) {
+        if (args.length == 8) {
             maxLat = Double.parseDouble(args[4]);
             minLat = Double.parseDouble(args[5]);
             maxLong = Double.parseDouble(args[6]);
@@ -98,6 +98,9 @@ public class KMeansClusteringJob {
         job.setMapperClass(KMeansMapper.class);
         job.setReducerClass(KMeansReducer.class);
         job.setJarByClass(KMeansMapper.class);
+
+        // set combiner
+        job.setCombinerClass(KMeansCombiner.class);
 
         FileInputFormat.addInputPath(job, pointDataPath);
         FileSystem fs = FileSystem.get(conf);
