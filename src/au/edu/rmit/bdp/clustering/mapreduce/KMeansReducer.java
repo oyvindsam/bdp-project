@@ -39,7 +39,7 @@ public class KMeansReducer extends Reducer<IntWritable, DpArrayWritable, Centroi
 	@Override
 	protected void reduce(IntWritable clusterIndex, Iterable<DpArrayWritable> values, Context context) throws IOException,
 			InterruptedException {
-		System.out.println("clusterIndex: " + clusterIndex);
+		//System.out.println("clusterIndex: " + clusterIndex);
 		List<DataPoint> vectorList = new ArrayList<>();
 
 		// old centroid
@@ -52,10 +52,10 @@ public class KMeansReducer extends Reducer<IntWritable, DpArrayWritable, Centroi
 			for (Writable writable : dpArray.get()) {
 				if (centroid == null) {
 					centroid = new Centroid(((DataPoint) writable).getVector());  // first element
-					System.out.println("Centroid read: " + centroid.getCenterVector());
+					//System.out.println("Centroid read: " + centroid.getCenterVector());
 				} else {
 					DataPoint dp = (DataPoint) writable;
-					System.out.println("DataPoint read: " + dp.getVector());
+					//System.out.println("DataPoint read: " + dp.getVector());
 
 					vectorList.add(dp);
 
@@ -66,7 +66,7 @@ public class KMeansReducer extends Reducer<IntWritable, DpArrayWritable, Centroi
 			}
 		}
 		newCenter.divideByK();
-		System.out.println("New-center: " + newCenter.getCenterVector());
+		//System.out.println("New-center: " + newCenter.getCenterVector());
 
 		centers.add(newCenter);
 
@@ -105,6 +105,6 @@ public class KMeansReducer extends Reducer<IntWritable, DpArrayWritable, Centroi
 			}
 
 		}
-		System.out.println("Finsisehd reducing!-------");
+		//System.out.println("Finsisehd reducing!-------");
 	}
 }

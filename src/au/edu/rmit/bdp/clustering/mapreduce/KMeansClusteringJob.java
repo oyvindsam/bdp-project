@@ -176,7 +176,7 @@ public class KMeansClusteringJob {
 
         Path result = new Path("clustering/depth_" + (iteration - 1) + "/");
 
-        FileStatus[] stati = fs.listStatus(result);
+/*        FileStatus[] stati = fs.listStatus(result);
         for (FileStatus status : stati) {
             if (!status.isDirectory()) {
                 Path path = status.getPath();
@@ -191,10 +191,10 @@ public class KMeansClusteringJob {
                     }
                 }
             }
-        }
+        }*/
 
         long endTime = System.currentTimeMillis();
-        System.out.println("Total time: " + (endTime - startTime));
+        System.out.println("\n\nTotal time: " + (endTime - startTime)+"\n\n");
     }
 
     @SuppressWarnings("deprecation")

@@ -52,7 +52,7 @@ public class KMeansMapper extends Mapper<Centroid, DataPoint, IntWritable, DpArr
 	@Override
 	protected void setup(Context context) throws IOException, InterruptedException {
 		super.setup(context);
-		System.out.println("\n---------- Map setup called");
+		//System.out.println("\n---------- Map setup called");
 		// We get the URI to the centroid file on hadoop file system (not local fs!).
 		// The url is set beforehand in KMeansClusteringJob#main.
 		Configuration conf = context.getConfiguration();
@@ -69,7 +69,7 @@ public class KMeansMapper extends Mapper<Centroid, DataPoint, IntWritable, DpArr
 			while (reader.next(key, value)) {
 				Centroid centroid = new Centroid(key);
 				centroid.setClusterIndex(index++);
-				System.out.println("Centroid data loaded: vector: " + centroid.getCenterVector() + ", index: " + centroid.getClusterIndex());
+				//System.out.println("Centroid data loaded: vector: " + centroid.getCenterVector() + ", index: " + centroid.getClusterIndex());
 				map.put(centroid, new ArrayList<>());
 			}
 		}
@@ -99,7 +99,7 @@ public class KMeansMapper extends Mapper<Centroid, DataPoint, IntWritable, DpArr
 			if (nearestDistance > distanceMeasurer.measureDistance(dataVector, c.getCenterVector())) {
 				nearest = c;
 
-				System.out.println("---- Nearest centroid vector: " + c.getCenterVector() + " for dataPoint: " + dataPoint.getVector());
+				//System.out.println("---- Nearest centroid vector: " + c.getCenterVector() + " for dataPoint: " + dataPoint.getVector());
 				nearestDistance = distanceMeasurer.measureDistance(dataVector, c.getCenterVector());
 			}
 		}
