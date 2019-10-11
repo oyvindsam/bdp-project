@@ -60,8 +60,13 @@ public final class Centroid implements WritableComparable<Centroid> {
 		center = center.add(c.getCenterVector());
 	}
 
-	public final void divideByK() {
+	public final int getK() {
+		return this.kTimesIncremented;
+	}
+
+	public final int divideByK() {
 		center = center.divide(kTimesIncremented);
+		return kTimesIncremented;
 	}
 
 	public final boolean update(Centroid c) {

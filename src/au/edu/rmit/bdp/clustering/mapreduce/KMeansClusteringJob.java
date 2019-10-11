@@ -1,12 +1,11 @@
 package au.edu.rmit.bdp.clustering.mapreduce;
 
+import au.edu.rmit.bdp.clustering.model.CentArrayWritable;
 import au.edu.rmit.bdp.clustering.model.Centroid;
 import au.edu.rmit.bdp.clustering.model.DataPoint;
-import au.edu.rmit.bdp.clustering.model.DpArrayWritable;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
@@ -23,7 +22,6 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static au.edu.rmit.bdp.util.Etl.extractData;
-import static au.edu.rmit.bdp.util.Etl.findExtremes;
 
 /**
  * K-means algorithm in mapReduce<p>
@@ -128,12 +126,11 @@ public class KMeansClusteringJob {
         job.setInputFormatClass(SequenceFileInputFormat.class);
         job.setOutputFormatClass(SequenceFileOutputFormat.class);
 
+        job.setMapOutputKeyClass(IntWritable.class);
+        job.setMapOutputValueClass(CentArrayWritable.class);
 
         job.setOutputKeyClass(Centroid.class);
-        job.setOutputValueClass(DataPoint.class);
-
-        job.setMapOutputKeyClass(IntWritable.class);
-        job.setMapOutputValueClass(DpArrayWritable.class);
+        job.setOutputValueClass(IntWritable.class);
 
         job.waitForCompletion(true);
 
@@ -150,7 +147,7 @@ public class KMeansClusteringJob {
             job.setReducerClass(KMeansReducer.class);
             job.setJarByClass(KMeansMapper.class);
 
-            pointDataPath = new Path("clustering/depth_" + (iteration - 1) + "/");
+            //pointDataPath = new Path("clustering/depth_1");
             outputDir = new Path("clustering/depth_" + iteration);
 
             FileInputFormat.addInputPath(job, pointDataPath);
@@ -160,11 +157,12 @@ public class KMeansClusteringJob {
             FileOutputFormat.setOutputPath(job, outputDir);
             job.setInputFormatClass(SequenceFileInputFormat.class);
             job.setOutputFormatClass(SequenceFileOutputFormat.class);
+
             job.setOutputKeyClass(Centroid.class);
-            job.setOutputValueClass(DataPoint.class);
+            job.setOutputValueClass(IntWritable.class);
 
             job.setMapOutputKeyClass(IntWritable.class);
-            job.setMapOutputValueClass(DpArrayWritable.class);
+            job.setMapOutputValueClass(CentArrayWritable.class);
 
 
             job.setNumReduceTasks(numReducers);
@@ -176,7 +174,8 @@ public class KMeansClusteringJob {
 
         Path result = new Path("clustering/depth_" + (iteration - 1) + "/");
 
-        FileStatus[] stati = fs.listStatus(result);
+
+/*        FileStatus[] stati = fs.listStatus(result);
         for (FileStatus status : stati) {
             if (!status.isDirectory()) {
                 Path path = status.getPath();
@@ -191,7 +190,7 @@ public class KMeansClusteringJob {
                     }
                 }
             }
-        }
+        }*/
 
         long endTime = System.currentTimeMillis();
         System.out.println("Total time: " + (endTime - startTime));

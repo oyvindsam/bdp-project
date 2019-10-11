@@ -2,7 +2,7 @@ package au.edu.rmit.bdp.clustering.mapreduce;
 
 import au.edu.rmit.bdp.clustering.model.Centroid;
 import au.edu.rmit.bdp.clustering.model.DataPoint;
-import au.edu.rmit.bdp.clustering.model.DpArrayWritable;
+import au.edu.rmit.bdp.clustering.model.CentArrayWritable;
 import au.edu.rmit.bdp.distance.CosineDistance;
 import au.edu.rmit.bdp.distance.DistanceMeasurer;
 import de.jungblut.math.DoubleVector;
@@ -29,7 +29,7 @@ import java.util.Map;
  * The difference is that the association between a centroid and a data-point may change.
  * This is because the centroids has been recomputed in previous reduce().
  */
-public class KMeansMapper extends Mapper<Centroid, DataPoint, IntWritable, DpArrayWritable> {
+public class KMeansMapper extends Mapper<Centroid, DataPoint, IntWritable, CentArrayWritable> {
 
 	//private final List<Centroid> centers = new ArrayList<>();
 	private DistanceMeasurer distanceMeasurer;
@@ -71,6 +71,7 @@ public class KMeansMapper extends Mapper<Centroid, DataPoint, IntWritable, DpArr
 				centroid.setClusterIndex(index++);
 				System.out.println("Centroid data loaded: vector: " + centroid.getCenterVector() + ", index: " + centroid.getClusterIndex());
 				map.put(centroid, new ArrayList<>());
+				map.get(centroid).add(new DataPoint(centroid));
 			}
 		}
 		// This is for calculating the distance between a point and another (centroid is essentially a point).
@@ -99,35 +100,29 @@ public class KMeansMapper extends Mapper<Centroid, DataPoint, IntWritable, DpArr
 			if (nearestDistance > distanceMeasurer.measureDistance(dataVector, c.getCenterVector())) {
 				nearest = c;
 
-				System.out.println("---- Nearest centroid vector: " + c.getCenterVector() + " for dataPoint: " + dataPoint.getVector());
 				nearestDistance = distanceMeasurer.measureDistance(dataVector, c.getCenterVector());
 			}
 		}
-		List<DataPoint> lst = map.get(nearest);
-		lst.add(new DataPoint(dataPoint));  // kinda important not to add the reference to the same dataPoint... queue 2 hours debugging.
+		System.out.println("---- Nearest centroid vector: " + nearest.getCenterVector() + " for dataPoint: " + dataPoint.getVector());
+
+		map.get(nearest).add(dataPoint);
 	}
 
 	@Override
 	protected void cleanup(Context context) throws IOException, InterruptedException {
 		super.cleanup(context);
-/*		map.forEach((key, value) -> {
-			System.out.println("key value : " + key +" / " + value);
-		});*/
-		for (Map.Entry<Centroid, List<DataPoint>> entry : map.entrySet()) {
-			Centroid centroid = entry.getKey();
-			List<DataPoint> dataPoints = entry.getValue();
+		for (Centroid centroid : map.keySet()) {
+			List<DataPoint> points = map.get(centroid);
+			Centroid oldCentroid = new Centroid(points.get(0));
+			if (points.size() > 1) {
+				for (int i = 1; i < points.size(); i++) {
+					centroid.plus(points.get(i));
+				}
+				System.out.println("---- TOTAL: " + centroid.getCenterVector());
+				CentArrayWritable arrayWritable = new CentArrayWritable(new Centroid[] {oldCentroid, centroid});
+				context.write(new IntWritable(centroid.getClusterIndex()), arrayWritable);
 
-			if (dataPoints.size() == 0) continue;  // do not write empty dataPoint list to disk
-
-			DataPoint[] points = new DataPoint[dataPoints.size() + 1];  // first field for centroid
-			points[0] = new DataPoint(centroid); // the first item in the list is the real centroid, rest is dataPoints. Hey im lazy
-			for (int i = 0; i < dataPoints.size(); i++) {
-				points[i+1] = dataPoints.get(i);
 			}
-
-			DpArrayWritable arrayWritable = new DpArrayWritable(points);
-			context.write(new IntWritable(centroid.getClusterIndex()), arrayWritable);
-
 		}
 	}
 }
