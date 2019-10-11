@@ -47,6 +47,10 @@ public final class DataPoint implements WritableComparable<DataPoint> {
 		this.vector = new DenseDoubleVector(arr);
 	}
 
+	public DataPoint(Centroid centroid) {
+		this.vector = new DenseDoubleVector(centroid.getCenterVector());
+	}
+
 	@Override
 	public final void write(DataOutput out) throws IOException {
 		writeVector(this.vector, out);

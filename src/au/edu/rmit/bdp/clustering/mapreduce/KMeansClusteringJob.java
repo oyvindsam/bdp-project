@@ -2,6 +2,7 @@ package au.edu.rmit.bdp.clustering.mapreduce;
 
 import au.edu.rmit.bdp.clustering.model.Centroid;
 import au.edu.rmit.bdp.clustering.model.DataPoint;
+import au.edu.rmit.bdp.clustering.model.DpArrayWritable;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -17,6 +18,8 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static au.edu.rmit.bdp.util.Etl.extractData;
@@ -56,6 +59,7 @@ public class KMeansClusteringJob {
     @SuppressWarnings("deprecation")
     public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException {
 
+        long startTime = System.currentTimeMillis();
         // First argument is path to raw input data (csv file)
         Path inputData = new Path(args[0]);
         // second argument number of reducers
@@ -124,8 +128,12 @@ public class KMeansClusteringJob {
         job.setInputFormatClass(SequenceFileInputFormat.class);
         job.setOutputFormatClass(SequenceFileOutputFormat.class);
 
+
         job.setOutputKeyClass(Centroid.class);
         job.setOutputValueClass(DataPoint.class);
+
+        job.setMapOutputKeyClass(IntWritable.class);
+        job.setMapOutputValueClass(DpArrayWritable.class);
 
         job.waitForCompletion(true);
 
@@ -154,6 +162,11 @@ public class KMeansClusteringJob {
             job.setOutputFormatClass(SequenceFileOutputFormat.class);
             job.setOutputKeyClass(Centroid.class);
             job.setOutputValueClass(DataPoint.class);
+
+            job.setMapOutputKeyClass(IntWritable.class);
+            job.setMapOutputValueClass(DpArrayWritable.class);
+
+
             job.setNumReduceTasks(numReducers);
 
             job.waitForCompletion(true);
