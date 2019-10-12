@@ -63,7 +63,8 @@ public class KMeansClusteringJob {
         // First argument is path to raw input data (csv file)
         Path inputData = new Path(args[0]);
         // second argument number of reducers
-        int numReducers = args.length >= 2 ? Integer.parseInt(args[1]) : 1;
+        int numReducers = (int) Math.round((args.length >= 2 ? Integer.parseInt(args[1]) : 1) * 1.75);
+        System.out.println("Num reducers: " + numReducers);
         // # of centroids. Default 2.
         int numCentroids = args.length >= 3 ? Integer.parseInt(args[2]) : 2;
 
@@ -195,6 +196,25 @@ public class KMeansClusteringJob {
 
         long endTime = System.currentTimeMillis();
         System.out.println("\n\nTotal time: " + (endTime - startTime)+"\n\n");
+
+        Path centroids = new Path(conf.get("centroid.path"));
+        FileSystem fsf = FileSystem.get(conf);
+
+        // After having the location of the file containing all centroids data,
+        // we read them using SequenceFile.Reader, which is another API provided by hadoop for reading binary file
+        // The data is modeled in Centroid.class and stored in global variable centers, which will be used in map()
+        try (SequenceFile.Reader reader = new SequenceFile.Reader(fsf, centroids, conf)) {
+            Centroid key = new Centroid();
+            IntWritable value = new IntWritable();
+            int index = 0;
+            while (reader.next(key, value)) {
+                Centroid centroid = new Centroid(key);
+                System.out.println("Centroid found: " + centroid.getCenterVector());
+            }
+        }
+        System.out.println("\n\nTotal time: " + (endTime - startTime)+"\n\n");
+
+
     }
 
     @SuppressWarnings("deprecation")
