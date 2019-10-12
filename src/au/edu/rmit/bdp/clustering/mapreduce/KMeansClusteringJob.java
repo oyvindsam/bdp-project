@@ -166,6 +166,7 @@ public class KMeansClusteringJob {
 
         Path result = new Path("clustering/depth_" + (iteration - 1) + "/");
 
+/*
         FileStatus[] stati = fs.listStatus(result);
         for (FileStatus status : stati) {
             if (!status.isDirectory()) {
@@ -182,9 +183,29 @@ public class KMeansClusteringJob {
                 }
             }
         }
+*/
 
         long endTime = System.currentTimeMillis();
-        System.out.println("Total time: " + (endTime - startTime));
+        System.out.println("\n\nTotal time: " + (endTime - startTime)+"\n\n");
+
+        Path centroids = new Path(conf.get("centroid.path"));
+        FileSystem fsf = FileSystem.get(conf);
+
+        // After having the location of the file containing all centroids data,
+        // we read them using SequenceFile.Reader, which is another API provided by hadoop for reading binary file
+        // The data is modeled in Centroid.class and stored in global variable centers, which will be used in map()
+        try (SequenceFile.Reader reader = new SequenceFile.Reader(fsf, centroids, conf)) {
+            Centroid key = new Centroid();
+            IntWritable value = new IntWritable();
+            int index = 0;
+            while (reader.next(key, value)) {
+                Centroid centroid = new Centroid(key);
+                System.out.println("Centroid found: " + centroid.getCenterVector());
+            }
+        }
+        System.out.println("\n\nTotal time: " + (endTime - startTime)+"\n\n");
+
+
     }
 
     @SuppressWarnings("deprecation")
