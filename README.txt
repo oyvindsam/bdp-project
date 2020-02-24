@@ -1,3 +1,7 @@
+K-means is one of the most popular algorithms used in scientific and industrial applications [1]. With use of Hadoop MapReduce one can compute clusters more efficiently, and several optimizations can be used to further improve the computing speed. In this paper I will present an implementation, optimizations, scaling issues, and test results for a K-means algorithm on a Hadoop MapReduce system.
+
+Read the rest of the report [here](./report.pdf)
+
 
 Compile:
 mvn clean verify
